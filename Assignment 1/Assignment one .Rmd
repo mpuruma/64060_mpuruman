@@ -1,0 +1,45 @@
+---
+title: "Assignment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+chooseCRANmirror(graphics = getOption("menu.graphics"), ind = 79,
+                 local.only = FALSE)
+ Data1 <- read.csv("Raw Data.csv")
+ View(Data1)
+ 
+ summary(Data1)
+ 
+ install.packages("vcd")
+ 
+  mean(Data1$AGE)
+ 
+    median(Data1$AGE)
+  
+     mode(Data1$AGE)
+   
+     install.packages("dplyr")
+    library(dplyr)
+    select(Data1, AGE:SERIES)
+     filter(Data1, AGE==21)
+     filter(Data1, SERIES==5)
+     arrange(Data1, GENDER)
+     
+summary(Data1)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+plot(Data1$AGE,Data1$SERIES)
+     plot(Data1$AGE,Data1$COMPLAINTS)
+    ```
