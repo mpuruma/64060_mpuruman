@@ -1,0 +1,170 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+#title: "Assinment2FML"
+#author: "Mpurumandla"
+#date: "20/02/2022"
+#output: pdf_document
+
+#Importing data and setting data as working directory
+```{r}
+UniversalBank <- read.csv("universalbank.csv")
+
+colnames<-c('ID','Age','Experience','Income','zIP.Code','Family','CCAvg','Education','Mortgage','Personal.Loan','Securities.Account','CD.Account','Online','Creditcard')
+
+summary(UniversalBank)
+```
+
+
+#Removing some of attributes we do not use in our model and set them to NULL
+```{r}
+UniversalBank$ID <- NULL 
+UniversalBank$ZIP.Code <- NULL
+
+summary(UniversalBank)
+
+```
+
+# Calling Libraries
+```{r}
+library(class)
+library(dplyr)
+library(caret)
+library(ggplot2)
+
+summary(UniversalBank)
+
+
+```
+
+# converting categorical variables("Education","Personal.Loan") to factors
+```{r}
+UniversalBank$Personal.Loan=as.factor(UniversalBank$Personal.Loan)
+UniversalBank$Income=as.factor(UniversalBank$Income)
+Bank_norm<-UniversalBank
+
+```
+
+# Normalize the data,removing target attribute before normalization
+```{r}
+Norm_model<-preProcess(UniversalBank[,-8],method = c("center", "scale"))
+Bank_norm[, -8]=predict(Norm_model,UniversalBank[,-8])
+summary(Bank_norm)
+Bank_norm$personal.Loan=UniversalBank$Personal.Loan
+
+```
+
+#Dividing the data into train and validation. 
+```{r}
+Train_Index = createDataPartition(UniversalBank$Personal.Loan,p=0.6, list=FALSE) # 60% reserved for Train
+Train.df=Bank_norm[Train_Index,]
+Validation.df=Bank_norm[-Train_Index,]
+
+```
+
+#1 -> Modelling k-NN with K=1 and sample data
+
+```{r}
+To_Predict=data.frame(Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2, 
+                            Mortgage = 0, Securities.Account = 0, CD.Account =0, Online = 1, CreditCard = 1,Education = 1)
+
+print(To_Predict)
+To_Predict_norm=predict(Norm_model,To_Predict)
+print(To_Predict_norm)
+Prediction <-knn(train=Train.df[,1:7], 
+                 test=To_Predict_norm[,1:7],
+                 cl=Train.df$Personal.Loan,
+                 k=1)
+print(Prediction)
+
+```
+
+#2- Finding the best value of K to avoid over fitting
+```{r}
+fitControl <- trainControl(method = "repeatedcv",
+                           number = 3,
+                           repeats = 2)
+searchGrid=expand.grid(k = 1:10)
+Knn.model=train(personal.Loan~., 
+                data=Train.df,
+                method='knn',
+                tuneGrid=searchGrid,
+                trControl = fitControl,)
+Knn.model
+
+```
+
+#3 - Show the confusion matrix for the validation data that results from using the best k.
+```{r}
+predictions<-predict(Knn.model,Validation.df)
+
+confusionMatrix(predictions,Validation.df$Personal.Loan)
+
+
+```
+
+#4
+
+```{r}
+To_Predict=data.frame(Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2, 
+Mortgage = 0, Securities.Account = 0, CD.Account = 0, Online = 1, CreditCard = 1,Education = 1)
+
+
+print(To_Predict)
+To_Predict_norm=predict(Norm_model,To_Predict)
+print(To_Predict_norm)
+Prediction <-knn(train=Train.df[,1:7], 
+                 test=To_Predict_norm[,1:7],
+                 cl=Train.df$Personal.Loan,
+                 k=1)
+Prediction
+ 
+
+```
+
+#5
+
+```{r}
+splitSample <- sample(1:3, size=nrow(Bank_norm), prob=c(0.5,0.3,0.2), replace = TRUE)
+train_Data <- Bank_norm[splitSample==1,]
+valid_Data <- Bank_norm[splitSample==2,]
+test_Data <- Bank_norm[splitSample==3,]
+
+Predict=data.frame(Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2, Education= 1,Mortgage = 0, Securities.Account = 0, CD.Account = 0, Online = 1,CreditCard = 1)
+
+print(Predict)
+
+Predict_norm<-predict(Norm_model,Predict)
+
+print(Predict_norm)
+
+Prediction_newsplit <-knn(train=Train.df[,1:7,9:12], 
+                          test=To_Predict_norm[,1:7,9:12],
+                          cl=Train.df$Personal.Loan,
+                          k=1)
+
+print(Prediction_newsplit)
+
+fitControl2 <- trainControl(method = "repeatedcv",
+                            number = 3,
+                            repeats = 2)
+searchGrid=expand.grid(k = 1:10)
+
+Knn.model2 =train(Personal.Loan~., 
+                  data=Train.df,
+                  method='knn',
+                  tuneGrid=searchGrid,
+                  trControl = fitControl2,)
+Knn.model2
+
+predictions2<-predict(Knn.model2,Validation.df)
+confusionMatrix(predictions2,Validation.df$Personal.Loan)
+
+
+```
+
+
+
+
