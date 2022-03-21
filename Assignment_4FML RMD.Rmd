@@ -1,0 +1,120 @@
+---
+title: "FML_Assignment 4"
+author: "Manaswini"
+date: '2022-03-17'
+output:
+  word_document: default
+  pdf_document: default
+---
+```{r}
+setwd("C:/Users/mpuru/OneDrive/Documents/R/Assignment4_fml")
+Pharmaceuticals <- read.csv("~/R/Assignment4_fml/Pharmaceuticals.csv")
+View(Pharmaceuticals)
+head(Pharmaceuticals)
+
+
+```
+
+```{r}
+
+dim(Pharmaceuticals) #Dataframe has 14 variables and 21 records
+str(Pharmaceuticals) #Shows the No. of variable and their datatypes
+U<-unique(Pharmaceuticals) # This shows there are no duplicate rows
+dim(U) 
+
+
+
+```
+```{r}
+pairs(Pharmaceuticals[3:11]) #All possible combinations of Discrete variables plotted
+library(DataExplorer)
+introduce(Pharmaceuticals) #Shows the number of Discrete/continuous variables and missing value, if any.
+#There are 5 discrete Variables, 9 Continuous variables and no missing variables.
+
+```
+```{r}
+set.seed(64060)
+plot(Market_Cap~Rev_Growth, Pharmaceuticals)
+with(Pharmaceuticals, text(Market_Cap~Rev_Growth, labels=Symbol, pos=4, cex=0.4)) #A rough estimate of how the distribution is for Market cap vs revenue growth
+plot(Market_Cap~Net_Profit_Margin, Pharmaceuticals)
+with(Pharmaceuticals, text(Market_Cap~Net_Profit_Margin, labels=Symbol, pos=4, cex=0.4))
+
+```
+```{r}
+#K-means clustering model
+library(tidyverse)
+library(factoextra)
+library(ISLR)
+Pharmaceuticals1 <- scale(Pharmaceuticals[, c(3:11)], center = TRUE, scale = TRUE)
+dist_pharmaceuticals <- get_dist(Pharmaceuticals1)
+print(dist_pharmaceuticals, digits = 3)
+heatmap(Pharmaceuticals1, scale = "column")
+
+
+
+```
+
+
+```{r}
+#Company 8 and 17 are the furthest from each other as the distance between them is the largest i.e 7.18. 
+Pharmaceuticals[c(8,17),] #From this we can see that there is a huge difference in terms of Market capital, Rev_Growth and Net Profit margin of both these companies
+boxplot(Pharmaceuticals1, col=c("deepskyblue","deepskyblue4","cadetblue","cadetblue1","cadetblue2","cadetblue3","cadetblue4","dodgerblue", "dodgerblue4"), las = 2) #visualization of the outliers
+
+```
+Finding optimal number for K as per Elbow method
+
+```{r}
+fviz_nbclust(Pharmaceuticals1, kmeans, method = "wss") +
+ geom_vline(xintercept = 2, linetype = 5)       #Elbow method
+
+fviz_nbclust(Pharmaceuticals1, kmeans, method = "silhouette") #Silhouette Method
+
+```
+Silhouette method of finding optimal number of K is highly influenced by outliers. Since our data has quite a few number of outliers. 
+
+On removing the outliers, the optimal value of K using the silhouette method also came out to be 2.
+
+Hence, We can consider the optimal number of K using the Elbow method.
+```{r}
+#k=2
+
+k_mean_model2 <- kmeans(Pharmaceuticals1, centers = 2, nstart = 25) 
+fviz_cluster(k_mean_model2, data = Pharmaceuticals1)+ labs(subtitle = "k=2")
+k_mean_model2 
+
+
+```
+# b. Interpret the clusters with respect to the numerical variables used in forming the clusters.
+
+Companies in cluster 2 have a higher Return on Equity than companies in cluster 1 for the identical Return on Equity values.
+
+# c. Is there a pattern in the clusters with respect to the numerical variables (10 to 12)? (those not used in forming the clusters) 
+ 
+Cluster 1 has highest rev_growth, highest net_profit_margin and has hold median recommendation.
+
+Cluster 2 has low rev_growth, high net_profit_margin and has moderate buy recommendation.
+ 
+# d. Provide an appropriate name for each cluster using any or all of the variables in the dataset.
+
+High market cap companies : cluster 1
+
+Low market cap companies : cluster 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
